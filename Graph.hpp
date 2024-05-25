@@ -98,14 +98,32 @@ namespace GraphLib{
         **/
         std::vector<std::vector<int>> getGraph() const {return adjTable;}
 
+        /**
+         * @brief This method updates all the boolean flags of a graph.
+         * @return void.
+         * @throws std::invalid_argument if the graph is not loaded.
+        **/
         void updateGraphFlags();
 
+        /**
+         * @brief This method checks if the current graph is a subgraph of given graph.
+         * @param g The graph to be checked if it contains the current graph.
+         * @return true if the current graph is a subgraph of the given graph, false otherwise.
+         * @throws std::invalid_argument if one of the graphs is not loaded.
+        **/
         bool subGraph(const Graph &g) const;
 
+        /**
+         * @brief This method counts how many edges a graph has.
+         * @return The number of edges in the graph.
+         * @throws std::invalid_argument if the graph is not loaded. 
+        **/
         int countEdges() const;
 
 // ---------------------------------------------------------------------------------------------
-
+//                    all of the overloaded operators
+// ---------------------------------------------------------------------------------------------    
+        
         /**
          * @brief This method overloads the operator = to copy a graph.
          * @param g The graph to be copied.
@@ -255,14 +273,49 @@ namespace GraphLib{
         **/
         bool operator==(const Graph &g) const;
         
+        /**
+         * @brief This method overloads the operator != to compare two graphs.
+         * @param g The graph to be compared to the current graph.
+         * @return true if the two graphs are not equal, false otherwise.
+         * @throws std::invalid_argument if one of the graphs is not loaded.
+         * @throws std::invalid_argument if the given graph is not the same size as the current graph.
+        **/
         bool operator!=(const Graph &g) const;
 
+        /**
+         * @brief This method overloads the operator < to compare two graphs.
+         * @param g The graph to be compared to the current graph.
+         * @return true if the current graph is less than the given graph, false otherwise.
+         * @throws std::invalid_argument if one of the graphs is not loaded.
+         * @throws std::invalid_argument if the given graph is not the same size as the current graph. 
+        **/
         bool operator<(const Graph &g) const;
 
+        /**
+         * @brief This method overloads the operator <= to compare two graphs.
+         * @param g The graph to be compared to the current graph.
+         * @return true if the current graph is less than or equal to the given graph, false otherwise.
+         * @throws std::invalid_argument if one of the graphs is not loaded.
+         * @throws std::invalid_argument if the given graph is not the same size as the current graph. 
+        **/
         bool operator<=(const Graph &g) const;
 
+        /**
+         * @brief This method overloads the operator > to compare two graphs.
+         * @param g The graph to be compared to the current graph.
+         * @return true if the current graph is greater than the given graph, false otherwise.
+         * @throws std::invalid_argument if one of the graphs is not loaded.
+         * @throws std::invalid_argument if the given graph is not the same size as the current graph.
+        **/
         bool operator>(const Graph &g) const;
 
+        /**
+         * @brief This method overloads the operator >= to compare two graphs.
+         * @param g The graph to be compared to the current graph.
+         * @return true if the current graph is greater than or equal to the given graph, false otherwise.
+         * @throws std::invalid_argument if one of the graphs is not loaded.
+         * @throws std::invalid_argument if the given graph is not the same size as the current graph.
+        **/
         bool operator>=(const Graph &g) const;
 
         /**
@@ -272,7 +325,7 @@ namespace GraphLib{
          * @return The output stream after printing the graph.
          * @throws std::invalid_argument if the graph is not loaded.
         **/
-        // friend std::ostream& operator<<(std::ostream& os, const Graph &g);
+        friend std::ostream& operator<<(std::ostream& os, const Graph &g);
 
     };
 };

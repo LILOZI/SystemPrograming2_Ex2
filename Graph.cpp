@@ -107,7 +107,7 @@ void GraphLib::Graph::copyFlags(const GraphLib::Graph &g){
 
 void GraphLib::Graph::updateGraphFlags()
 {
-    this->directed = this->isSymetric();
+    this->directed = !this->isSymetric();
     this->negValues = false;
     this->weighted = false;
     for(size_t i = 0; i < this->getNumVertices(); i++){
@@ -129,9 +129,6 @@ bool GraphLib::Graph::subGraph(const GraphLib::Graph &g) const
     if(!g.isLoaded() || !this->loaded){
         throw std::invalid_argument("One of the graphs is not loaded.");
     }
-    // if(this->getNumVertices() > g.getNumVertices() || *this == g){
-    //     return false;
-    // }
     size_t vxs1 = this->getNumVertices();
     size_t vxs2 = g.getNumVertices();
     if(vxs1 > vxs2){
@@ -164,9 +161,10 @@ int GraphLib::Graph::countEdges() const
     if(!this->loaded){
         throw std::invalid_argument("The graph is not loaded.");
     }
+    size_t len = this->getNumVertices();
     int edge_count = 0;
-    for(size_t i = 0; i<this->adjTable.size();i++){
-        for(size_t j = 0; j<this->adjTable[0].size();j++){
+    for(size_t i = 0; i<len; i++){
+        for(size_t j = 0; j<len; j++){
             if(this->adjTable[i][j] != NO_EDGE){
                 edge_count++;
             }
@@ -190,15 +188,17 @@ GraphLib::Graph GraphLib::Graph::operator+(const GraphLib::Graph &g) const{
     if(!g.isLoaded() || !this->loaded){
         throw std::invalid_argument("One of the graphs is not loaded.");
     }
-    if(this->adjTable.size() != g.getGraph().size()){
+    size_t vxs1 = this->getNumVertices();
+    size_t vxs2 = g.getNumVertices();
+    if(vxs1 != vxs2){
         throw std::invalid_argument("The given graph has different size.");
     }
     GraphLib::Graph result;
     std::vector<std::vector<int>> temp;
-    for(size_t i = 0; i<this->adjTable.size();i++){
+    for(size_t i = 0; i<vxs1; i++){
         std::vector<int> innerVec;
-        for(size_t j = 0; j<this->adjTable[0].size();j++){
-            innerVec.push_back(this->adjTable[i][j] + g.getGraph()[i][j]);
+        for(size_t j = 0; j<vxs2; j++){
+            innerVec.push_back(this->adjTable[i][j] + g.getWeight(i, j));
         }
         temp.push_back(innerVec);
     }
@@ -211,7 +211,7 @@ GraphLib::Graph& GraphLib::Graph::operator+=(const GraphLib::Graph &g){
     if(!g.isLoaded() || !this->loaded){
         throw std::invalid_argument("One of the graphs is not loaded.");
     }
-    if(this->adjTable.size() != g.getGraph().size()){
+    if(this->getNumVertices() != g.getNumVertices()){
         throw std::invalid_argument("The given graph has different size.");
     }
     *this = this->operator+(g);
@@ -222,11 +222,10 @@ GraphLib::Graph& GraphLib::Graph::operator+=(const GraphLib::Graph &g){
 GraphLib::Graph GraphLib::Graph::operator++(int)
 {
     Graph temp = *this;
-    for(size_t i = 0; i<this->adjTable.size();i++){
-        for(size_t j = 0; j<this->adjTable[0].size();j++){
-            if(this->adjTable[i][j] != NO_EDGE){
-                this->adjTable[i][j]++;
-            }
+    size_t len = this->getNumVertices();
+    for(size_t i = 0; i<len; i++){
+        for(size_t j = 0; j<len; j++){
+            this->adjTable[i][j]++;
         }
     }
     temp.copyFlags(*this);
@@ -237,12 +236,10 @@ GraphLib::Graph GraphLib::Graph::operator++(int)
 
 GraphLib::Graph& GraphLib::Graph::operator++()
 {
-    for(size_t i = 0; i<this->adjTable.size();i++){
-        for(size_t j = 0; j<this->adjTable[0].size();j++){
-            if(this->adjTable[i][j] != NO_EDGE){
-                if(this->adjTable[i][j])
-                this->adjTable[i][j]++;
-            }
+    size_t len = this->getNumVertices();
+    for(size_t i = 0; i<len; i++){
+        for(size_t j = 0; j<len; j++){
+            this->adjTable[i][j]++;
         }
     }
     this->updateGraphFlags();
@@ -262,7 +259,9 @@ GraphLib::Graph GraphLib::Graph::operator-(const GraphLib::Graph &g) const{
     if(!g.isLoaded() || !this->loaded){
         throw std::invalid_argument("One of the graphs is not loaded.");
     }
-    if(this->adjTable.size() != g.getGraph().size()){
+    size_t vxs1 = this->getNumVertices();
+    size_t vxs2 = g.getNumVertices();
+    if(vxs1 != vxs2){
         throw std::invalid_argument("The given graph has different size.");
     }
     GraphLib::Graph result;
@@ -283,7 +282,9 @@ GraphLib::Graph& GraphLib::Graph::operator-=(const GraphLib::Graph &g){
     if(!g.isLoaded() || !this->loaded){
         throw std::invalid_argument("One of the graphs is not loaded.");
     }
-    if(this->getNumVertices() != g.getNumVertices()){
+    size_t vxs1 = this->getNumVertices();
+    size_t vxs2 = g.getNumVertices();
+    if(vxs1 != vxs2){
         throw std::invalid_argument("The given graph has different size.");
     }
     *this = this->operator-(g);
@@ -295,11 +296,10 @@ GraphLib::Graph GraphLib::Graph::operator--(int)
 {
     Graph temp = *this;
     temp.copyFlags(*this);
-    for(size_t i = 0; i<this->adjTable.size();i++){
-        for(size_t j = 0; j<this->adjTable[0].size();j++){
-            if(this->adjTable[i][j] != NO_EDGE){
-                this->adjTable[i][j]--;
-            }
+    size_t len = this->getNumVertices();
+    for(size_t i = 0; i<len; i++){
+        for(size_t j = 0; j<len; j++){
+            this->adjTable[i][j]--;
         }
     }
     this->updateGraphFlags();  
@@ -308,12 +308,10 @@ GraphLib::Graph GraphLib::Graph::operator--(int)
 
 GraphLib::Graph& GraphLib::Graph::operator--()
 {
-    for(size_t i = 0; i<this->adjTable.size();i++){
-        for(size_t j = 0; j<this->adjTable[0].size();j++){
-            if(this->adjTable[i][j] != NO_EDGE){
-                if(this->adjTable[i][j])
-                this->adjTable[i][j]--;
-            }
+    size_t len = this->getNumVertices();
+    for(size_t i = 0; i<len;i ++){
+        for(size_t j = 0; j<len; j++){
+            this->adjTable[i][j]--;
         }
     }
     this->updateGraphFlags();
@@ -334,9 +332,10 @@ GraphLib::Graph GraphLib::Graph::operator*(int scalar) const{
     }
     Graph result;
     std::vector<std::vector<int>> temp;
-    for(size_t i = 0; i<this->adjTable.size();i++){
+    size_t len = this->getNumVertices();
+    for(size_t i = 0; i<len; i++){
         std::vector<int> innerVec;
-        for(size_t j = 0; j<this->adjTable[0].size();j++){
+        for(size_t j = 0; j<len; j++){
             innerVec.push_back(this->adjTable[i][j] * scalar);
         }
         temp.push_back(innerVec);
@@ -350,8 +349,9 @@ GraphLib::Graph& GraphLib::Graph::operator*=(int scalar){
     if(!this->loaded){
         throw std::invalid_argument("The graph is not loaded.");
     }
-    for(size_t i = 0; i<this->adjTable.size();i++){
-        for(size_t j = 0; j<this->adjTable[0].size();j++){
+    size_t len = this->getNumVertices();
+    for(size_t i = 0; i<len; i++){
+        for(size_t j = 0; j<len; j++){
             this->adjTable[i][j] *= scalar;
         }
     }
@@ -368,9 +368,10 @@ GraphLib::Graph GraphLib::Graph::operator/(int scalar) const{
     }
     Graph result;
     std::vector<std::vector<int>> temp;
-    for(size_t i = 0; i<this->adjTable.size();i++){
+    size_t len = this->getNumVertices();
+    for(size_t i = 0; i<len; i++){
         std::vector<int> innerVec;
-        for(size_t j = 0; j<this->adjTable[0].size();j++){
+        for(size_t j = 0; j<len; j++){
             innerVec.push_back(this->adjTable[i][j] / scalar);
         }
         temp.push_back(innerVec);
@@ -387,8 +388,9 @@ GraphLib::Graph& GraphLib::Graph::operator/=(int scalar){
     if(scalar == 0){
         throw std::invalid_argument("The scalar value is zero.");
     }
-    for(size_t i = 0; i<this->adjTable.size();i++){
-        for(size_t j = 0; j<this->adjTable[0].size();j++){
+    size_t len = this->getNumVertices();
+    for(size_t i = 0; i<len; i++){
+        for(size_t j = 0; j<len; j++){
             this->adjTable[i][j] /= scalar;
         }
     }
@@ -407,8 +409,8 @@ GraphLib::Graph GraphLib::Graph::operator*(const GraphLib::Graph &g) const{
     }
     GraphLib::Graph result;
     std::vector<std::vector<int>> temp (vxs1, std::vector<int>(vxs1, NO_EDGE));
-    for(size_t i = 0; i<this->adjTable.size();i++){
-        for(size_t j = 0; j<this->adjTable[0].size();j++){
+    for(size_t i = 0; i<vxs1; i++){
+        for(size_t j = 0; j<vxs1; j++){
             int sum = 0;
             for(size_t k = 0; k<vxs1;k++){
                 temp[i][j] += this->adjTable[i][k] * g.getWeight(k, j);
@@ -435,11 +437,13 @@ bool GraphLib::Graph::operator==(const GraphLib::Graph &g) const{
     if(!g.isLoaded() || !this->loaded){
         throw std::invalid_argument("One of the graphs is not loaded.");
     }
-    if(this->getNumVertices() != g.getNumVertices()){
+    size_t vxs1 = this->getNumVertices();
+    size_t vxs2 = g.getNumVertices();
+    if(vxs1 != vxs2){
         return false;
     }
-    for(size_t i = 0; i<this->adjTable.size();i++){
-        for(size_t j = 0; j<this->adjTable[0].size();j++){
+    for(size_t i = 0; i<vxs1; i++){
+        for(size_t j = 0; j<vxs1; j++){
             if(this->adjTable[i][j] != g.getWeight(i, j)){
                 return false;
             }
@@ -514,3 +518,19 @@ bool GraphLib::Graph::operator>=(const GraphLib::Graph &g) const
     return !(*this < g);
 }
 
+std::ostream& GraphLib::operator<<(std::ostream& os, const GraphLib::Graph& g)
+{
+    if(!g.isLoaded()){
+        throw std::invalid_argument("The graph is not loaded.");
+    }
+    size_t len = g.getNumVertices();
+    for(size_t i = 0; i<len; i++){
+        os << "[ ";
+        for(size_t j = 0; j<len; j++){
+            os << g.getWeight(i, j) << " ";
+        }
+        os << "]" << std::endl;
+    }
+    os << std::endl;
+    return os;
+}
