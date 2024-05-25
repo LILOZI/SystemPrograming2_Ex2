@@ -4,7 +4,7 @@ CXX=clang++
 CXXFLAGS=-std=c++11 -Werror -Wsign-conversion
 VALGRIND_FLAGS=-v --leak-check=full --show-leak-kinds=all  --error-exitcode=99
 
-SOURCES=Graph.cpp Algorithms.cpp TestCounter.cpp TestEx2.cpp Algorithms.hpp Graph.hpp
+SOURCES=Graph.cpp Algorithms.cpp TestCounter.cpp Test.cpp Algorithms.hpp Graph.hpp
 OBJECTS=$(subst .cpp,.o,$(filter-out Algorithms.hpp Graph.hpp, $(SOURCES))) 
 
 run: test

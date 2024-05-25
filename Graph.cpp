@@ -1,4 +1,5 @@
 #include "Graph.hpp"
+#include <stdexcept>
 
 // This is the class constructor, set all boolean flags to false
 GraphLib::Graph::Graph(){
@@ -95,5 +96,421 @@ bool GraphLib::Graph::isSymetric(){
     }
     return true;
 
+}
+
+void GraphLib::Graph::copyFlags(const GraphLib::Graph &g){
+    this->directed = g.isDirected();
+    this->negValues = g.isNegValues();
+    this->weighted = g.isWeighted();
+    this->loaded = g.isLoaded();
+}
+
+void GraphLib::Graph::updateGraphFlags()
+{
+    this->directed = this->isSymetric();
+    this->negValues = false;
+    this->weighted = false;
+    for(size_t i = 0; i < this->getNumVertices(); i++){
+        for(size_t j = 0; j < this->getNumVertices(); j++){
+            if(this->adjTable[i][j] < 0){
+                this->setNegValues();
+                this->setWeighted();
+                return;
+            }
+            if(this->adjTable[i][j] > 1){
+                this->setWeighted();
+            }
+        }
+    }
+}
+
+bool GraphLib::Graph::subGraph(const GraphLib::Graph &g) const
+{
+    if(!g.isLoaded() || !this->loaded){
+        throw std::invalid_argument("One of the graphs is not loaded.");
+    }
+    // if(this->getNumVertices() > g.getNumVertices() || *this == g){
+    //     return false;
+    // }
+    size_t vxs1 = this->getNumVertices();
+    size_t vxs2 = g.getNumVertices();
+    if(vxs1 > vxs2){
+        return false;
+    }
+    for(size_t i = 0; i<= vxs2 - vxs1; i++){
+        for(size_t j = 0; j<= vxs2 - vxs1; j++){
+            bool finished = true;
+            for(size_t k = 0; k < vxs1; k++){
+                for(size_t l = 0; l < vxs1; l++){
+                    if(this->adjTable[k][l] != g.getWeight(i + k, j + l)){
+                        finished = false;
+                        break;
+                    }
+                }
+                if(!finished){
+                    break;
+                }
+            }
+            if(finished){
+                return true;
+            }
+        }
+    }
+    return true;
+}
+
+int GraphLib::Graph::countEdges() const
+{
+    if(!this->loaded){
+        throw std::invalid_argument("The graph is not loaded.");
+    }
+    int edge_count = 0;
+    for(size_t i = 0; i<this->adjTable.size();i++){
+        for(size_t j = 0; j<this->adjTable[0].size();j++){
+            if(this->adjTable[i][j] != NO_EDGE){
+                edge_count++;
+            }
+        }
+    }
+    return edge_count;
+}
+
+GraphLib::Graph& GraphLib::Graph::operator=(const GraphLib::Graph &g)
+{
+    if(!g.isLoaded()){
+        throw std::invalid_argument("The assigning graph is not loaded.");
+    }
+    this->adjTable = g.getGraph();
+    this->copyFlags(g);
+    return *this;
+}
+
+
+GraphLib::Graph GraphLib::Graph::operator+(const GraphLib::Graph &g) const{
+    if(!g.isLoaded() || !this->loaded){
+        throw std::invalid_argument("One of the graphs is not loaded.");
+    }
+    if(this->adjTable.size() != g.getGraph().size()){
+        throw std::invalid_argument("The given graph has different size.");
+    }
+    GraphLib::Graph result;
+    std::vector<std::vector<int>> temp;
+    for(size_t i = 0; i<this->adjTable.size();i++){
+        std::vector<int> innerVec;
+        for(size_t j = 0; j<this->adjTable[0].size();j++){
+            innerVec.push_back(this->adjTable[i][j] + g.getGraph()[i][j]);
+        }
+        temp.push_back(innerVec);
+    }
+    result.loadGraph(temp);
+    result.updateGraphFlags();
+    return result;
+}
+
+GraphLib::Graph& GraphLib::Graph::operator+=(const GraphLib::Graph &g){
+    if(!g.isLoaded() || !this->loaded){
+        throw std::invalid_argument("One of the graphs is not loaded.");
+    }
+    if(this->adjTable.size() != g.getGraph().size()){
+        throw std::invalid_argument("The given graph has different size.");
+    }
+    *this = this->operator+(g);
+    this->updateGraphFlags();
+    return *this;
+}
+
+GraphLib::Graph GraphLib::Graph::operator++(int)
+{
+    Graph temp = *this;
+    for(size_t i = 0; i<this->adjTable.size();i++){
+        for(size_t j = 0; j<this->adjTable[0].size();j++){
+            if(this->adjTable[i][j] != NO_EDGE){
+                this->adjTable[i][j]++;
+            }
+        }
+    }
+    temp.copyFlags(*this);
+    this->updateGraphFlags();
+    this->negValues = false;
+    return temp;
+}
+
+GraphLib::Graph& GraphLib::Graph::operator++()
+{
+    for(size_t i = 0; i<this->adjTable.size();i++){
+        for(size_t j = 0; j<this->adjTable[0].size();j++){
+            if(this->adjTable[i][j] != NO_EDGE){
+                if(this->adjTable[i][j])
+                this->adjTable[i][j]++;
+            }
+        }
+    }
+    this->updateGraphFlags();
+    return *this;
+}
+
+GraphLib::Graph GraphLib::Graph::operator+() const
+{
+    if (!this->loaded)
+    {
+        throw std::invalid_argument("The graph is not loaded.");
+    }
+    return *this;
+}
+
+GraphLib::Graph GraphLib::Graph::operator-(const GraphLib::Graph &g) const{
+    if(!g.isLoaded() || !this->loaded){
+        throw std::invalid_argument("One of the graphs is not loaded.");
+    }
+    if(this->adjTable.size() != g.getGraph().size()){
+        throw std::invalid_argument("The given graph has different size.");
+    }
+    GraphLib::Graph result;
+    std::vector<std::vector<int>> temp;
+    for(size_t i = 0; i<this->adjTable.size();i++){
+        std::vector<int> innerVec;
+        for(size_t j = 0; j<this->adjTable[0].size();j++){
+            innerVec.push_back(this->adjTable[i][j] - g.getWeight(i, j));
+        }
+        temp.push_back(innerVec);
+    }
+    result.loadGraph(temp);
+    result.updateGraphFlags();
+    return result;
+}
+
+GraphLib::Graph& GraphLib::Graph::operator-=(const GraphLib::Graph &g){
+    if(!g.isLoaded() || !this->loaded){
+        throw std::invalid_argument("One of the graphs is not loaded.");
+    }
+    if(this->getNumVertices() != g.getNumVertices()){
+        throw std::invalid_argument("The given graph has different size.");
+    }
+    *this = this->operator-(g);
+    this->updateGraphFlags();
+    return *this;
+}
+
+GraphLib::Graph GraphLib::Graph::operator--(int)
+{
+    Graph temp = *this;
+    temp.copyFlags(*this);
+    for(size_t i = 0; i<this->adjTable.size();i++){
+        for(size_t j = 0; j<this->adjTable[0].size();j++){
+            if(this->adjTable[i][j] != NO_EDGE){
+                this->adjTable[i][j]--;
+            }
+        }
+    }
+    this->updateGraphFlags();  
+    return temp;
+}
+
+GraphLib::Graph& GraphLib::Graph::operator--()
+{
+    for(size_t i = 0; i<this->adjTable.size();i++){
+        for(size_t j = 0; j<this->adjTable[0].size();j++){
+            if(this->adjTable[i][j] != NO_EDGE){
+                if(this->adjTable[i][j])
+                this->adjTable[i][j]--;
+            }
+        }
+    }
+    this->updateGraphFlags();
+    return *this;
+}
+
+GraphLib::Graph GraphLib::Graph::operator-() const
+{   
+    Graph temp = *this;
+    temp *= -1;
+    temp.updateGraphFlags();
+    return temp;
+}
+
+GraphLib::Graph GraphLib::Graph::operator*(int scalar) const{
+    if(!this->loaded){
+        throw std::invalid_argument("The graph is not loaded.");
+    }
+    Graph result;
+    std::vector<std::vector<int>> temp;
+    for(size_t i = 0; i<this->adjTable.size();i++){
+        std::vector<int> innerVec;
+        for(size_t j = 0; j<this->adjTable[0].size();j++){
+            innerVec.push_back(this->adjTable[i][j] * scalar);
+        }
+        temp.push_back(innerVec);
+    }
+    result.loadGraph(temp);
+    result.updateGraphFlags();
+    return result;
+}
+
+GraphLib::Graph& GraphLib::Graph::operator*=(int scalar){
+    if(!this->loaded){
+        throw std::invalid_argument("The graph is not loaded.");
+    }
+    for(size_t i = 0; i<this->adjTable.size();i++){
+        for(size_t j = 0; j<this->adjTable[0].size();j++){
+            this->adjTable[i][j] *= scalar;
+        }
+    }
+    this->updateGraphFlags();
+    return *this;
+}
+
+GraphLib::Graph GraphLib::Graph::operator/(int scalar) const{
+    if(!this->loaded){
+        throw std::invalid_argument("The graph is not loaded.");
+    }
+    if(scalar == 0){
+        throw std::invalid_argument("The scalar value is zero.");
+    }
+    Graph result;
+    std::vector<std::vector<int>> temp;
+    for(size_t i = 0; i<this->adjTable.size();i++){
+        std::vector<int> innerVec;
+        for(size_t j = 0; j<this->adjTable[0].size();j++){
+            innerVec.push_back(this->adjTable[i][j] / scalar);
+        }
+        temp.push_back(innerVec);
+    }
+    result.loadGraph(temp);
+    result.updateGraphFlags();
+    return result;
+}
+
+GraphLib::Graph& GraphLib::Graph::operator/=(int scalar){
+    if(!this->loaded){
+        throw std::invalid_argument("The graph is not loaded.");
+    }
+    if(scalar == 0){
+        throw std::invalid_argument("The scalar value is zero.");
+    }
+    for(size_t i = 0; i<this->adjTable.size();i++){
+        for(size_t j = 0; j<this->adjTable[0].size();j++){
+            this->adjTable[i][j] /= scalar;
+        }
+    }
+    this->updateGraphFlags();
+    return *this;
+}
+
+GraphLib::Graph GraphLib::Graph::operator*(const GraphLib::Graph &g) const{
+    if(!g.isLoaded() || !this->loaded){
+        throw std::invalid_argument("One of the graphs is not loaded.");
+    }
+    size_t vxs1 = this->getNumVertices();
+    size_t vxs2 = g.getNumVertices();
+    if(vxs1 != vxs2){
+        throw std::invalid_argument("The given graph has different size.");
+    }
+    GraphLib::Graph result;
+    std::vector<std::vector<int>> temp (vxs1, std::vector<int>(vxs1, NO_EDGE));
+    for(size_t i = 0; i<this->adjTable.size();i++){
+        for(size_t j = 0; j<this->adjTable[0].size();j++){
+            int sum = 0;
+            for(size_t k = 0; k<vxs1;k++){
+                temp[i][j] += this->adjTable[i][k] * g.getWeight(k, j);
+            }
+        }
+    }
+    result.loadGraph(temp);
+    result.updateGraphFlags();
+    return result;
+}
+
+GraphLib::Graph& GraphLib::Graph::operator*=(const GraphLib::Graph &g){
+    try{
+        *this = this->operator*(g);
+        this->updateGraphFlags();
+        return *this;
+    }
+    catch(const std::invalid_argument &e){
+        throw e;
+    }
+}
+
+bool GraphLib::Graph::operator==(const GraphLib::Graph &g) const{
+    if(!g.isLoaded() || !this->loaded){
+        throw std::invalid_argument("One of the graphs is not loaded.");
+    }
+    if(this->getNumVertices() != g.getNumVertices()){
+        return false;
+    }
+    for(size_t i = 0; i<this->adjTable.size();i++){
+        for(size_t j = 0; j<this->adjTable[0].size();j++){
+            if(this->adjTable[i][j] != g.getWeight(i, j)){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool GraphLib::Graph::operator!=(const GraphLib::Graph &g) const{
+    try{
+        return !(*this == g);
+    }
+    catch(const std::invalid_argument &e){
+        throw e;
+    }
+}
+
+bool GraphLib::Graph::operator<(const GraphLib::Graph &g) const
+{
+    if(!g.isLoaded() || !this->loaded){
+        throw std::invalid_argument("One of the graphs is not loaded.");
+    }
+
+    // G1 is a subgraph of G2 then, G1 < G2
+    if(this->subGraph(g)){
+        return true;
+    }
+    // G1 > G2 or G1 == G2
+    if(g.subGraph(*this) || *this == g){
+        return false;
+    }
+    int edge1 = this->countEdges();
+    int edge2 = g.countEdges();
+    // G1 has less edges than G2 then, G1 < G2
+    if(edge1 < edge2){
+        return true;
+    }
+    // G1 > G2
+    if(edge1 > edge2){
+        return false;
+    }
+    //G1 has less vertices than G2 then, G1 < G2
+    if(this->getNumVertices() < g.getNumVertices()){
+        return true;
+    }
+    return false;
+
+}
+
+bool GraphLib::Graph::operator<=(const GraphLib::Graph &g) const
+{
+    if(!g.isLoaded() || !this->loaded){
+        throw std::invalid_argument("One of the graphs is not loaded.");
+    }
+    return *this == g || *this < g;
+}
+
+
+bool GraphLib::Graph::operator>(const GraphLib::Graph &g) const
+{
+    if(!g.isLoaded() || !this->loaded){
+        throw std::invalid_argument("One of the graphs is not loaded.");
+    }
+    return !(*this <= g);
+}
+
+bool GraphLib::Graph::operator>=(const GraphLib::Graph &g) const
+{
+    if(!g.isLoaded() || !this->loaded){
+        throw std::invalid_argument("One of the graphs is not loaded.");
+    }
+    return !(*this < g);
 }
 

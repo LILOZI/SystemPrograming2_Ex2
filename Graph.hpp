@@ -25,7 +25,8 @@ namespace GraphLib{
         bool negValues;
         bool loaded;
         bool isSymetric();
-        void setDirected() {directed = true;}
+        void copyFlags(const GraphLib::Graph &g);
+        void setDirected() { directed = true; }
         void setWeighted() {weighted = true;}
         void setNegValues() {negValues = true;}
         void setLoaded() {loaded = true;}
@@ -97,12 +98,18 @@ namespace GraphLib{
         **/
         std::vector<std::vector<int>> getGraph() const {return adjTable;}
 
+        void updateGraphFlags();
+
+        bool subGraph(const Graph &g) const;
+
+        int countEdges() const;
+
 // ---------------------------------------------------------------------------------------------
 
         /**
          * @brief This method overloads the operator = to copy a graph.
          * @param g The graph to be copied.
-         * @return The current graph after the copy.
+         * @return The new graph after the copy.
          * @throws std::invalid_argument if the given graph is not loaded.
         **/
         Graph& operator=(const Graph &g);
@@ -114,7 +121,7 @@ namespace GraphLib{
          * @throws std::invalid_argument if one of the graphs is not loaded.
          * @throws std::invalid_argument if the given graph is not the same size as the current graph.
         **/
-        Graph& operator+(const Graph &g);
+        Graph operator+(const Graph &g) const;
 
         /**
          * @brief This method overloads the operator += to add a graph to the current graph.
@@ -123,7 +130,7 @@ namespace GraphLib{
          * @throws std::invalid_argument if one of the graphs is not loaded.
          * @throws std::invalid_argument if the given graph is not the same size as the current graph.
         **/
-        Graph& operator+=(const Graph &g) const;
+        Graph& operator+=(const Graph &g);
 
         /**
          * @brief This method overloads the operator ++ to add 1 to all the values in the graph.
@@ -131,7 +138,7 @@ namespace GraphLib{
          * @return The current graph after the addition.
          * @throws std::invalid_argument if the graph is not loaded.
         **/
-        Graph& operator++() const;
+        Graph& operator++();
         
         /**
          * @brief This method overloads the operator ++ to add 1 to all the values in the graph.
@@ -139,14 +146,14 @@ namespace GraphLib{
          * @return The current graph before the addition.
          * @throws std::invalid_argument if the graph is not loaded.
         **/
-        Graph operator++(int) const;
+        Graph operator++(int);
 
         /**
-         * @brief This method overloads the operator + to return the graph as is.
+         * @brief This method overloads the operator + to return the unary addition of a graph.
          * @return The current graph.
          * @throws std::invalid_argument if the graph is not loaded.
         **/
-        Graph& operator+() const;
+        Graph operator+() const;
 
         /**
          * @brief This method overloads the operator - to subtract two graphs.
@@ -155,7 +162,7 @@ namespace GraphLib{
          * @throws std::invalid_argument if one of the graphs is not loaded.
          * @throws std::invalid_argument if the given graph is not the same size as the current graph.
         **/
-        Graph& operator-(const Graph &g) const;
+        Graph operator-(const Graph &g) const;
 
         /**
          * @brief This method overloads the operator -= to subtract a graph from the current graph.
@@ -164,7 +171,7 @@ namespace GraphLib{
          * @throws std::invalid_argument if one of the graphs is not loaded.
          * @throws std::invalid_argument if the given graph is not the same size as the current graph. 
         **/
-        Graph& operator-=(const Graph &g) const;
+        Graph& operator-=(const Graph &g);
 
         /**
          * @brief This method overloads the operator -- to subtract 1 from all the values in the graph.
@@ -172,7 +179,7 @@ namespace GraphLib{
          *  @return The current graph after the subtraction.
          * @throws std::invalid_argument if the graph is not loaded.
         **/
-        Graph& operator--() const;
+        Graph& operator--();
 
         /**
          * @brief This method overloads the operator -- to subtract 1 from all the values in the graph.
@@ -180,14 +187,14 @@ namespace GraphLib{
          * @return The current graph before the subtraction.
          * @throws std::invalid_argument if the graph is not loaded.
         **/
-        Graph operator--(int) const;
+        Graph operator--(int);
 
         /**
          * @brief This method overloads the operator - to negate all the values in the graph.
          * @return pointer to the new graph that is the negation of the current graph.
          * @throws std::invalid_argument if the graph is not loaded.
         **/
-        Graph& operator-() const;
+        Graph operator-() const;
     
         /**
          * @brief This method overloads the operator * to multiply the graph by a number. 
@@ -195,7 +202,7 @@ namespace GraphLib{
          * @return pointer to the new graph that is the multiplication of the current graph by the given number.
          * @throws std::invalid_argument if the graph is not loaded.
         **/
-        Graph& operator*(int num) const;
+        Graph operator*(int num) const;
 
         /**
          * @brief This method overloads the operator *= to multiply the graph by a number.
@@ -203,7 +210,7 @@ namespace GraphLib{
          * @return The current graph after the multiplication.
          * @throws std::invalid_argument if the graph is not loaded.
         **/
-        Graph& operator*=(int num) const;
+        Graph& operator*=(int num);
 
         /**
          * @brief This method overloads the operator / to divide the graph by a number.
@@ -211,7 +218,7 @@ namespace GraphLib{
          * @return pointer to the new graph that is the division of the current graph by the given number.
          * @throws std::invalid_argument if the graph is not loaded.
         **/
-        Graph& operator/(int num) const;
+        Graph operator/(int num) const;
 
         /**
          * @brief This method overloads the operator /= to divide the graph by a number.
@@ -219,7 +226,7 @@ namespace GraphLib{
          * @return The current graph after the division.
          * @throws std::invalid_argument if the graph is not loaded.
         **/
-        Graph& operator/=(int num) const;
+        Graph& operator/=(int num);
 
         /**
          * @brief This method overloads the operator * to multiply two graphs.
@@ -228,7 +235,7 @@ namespace GraphLib{
          * @throws std::invalid_argument if one of the graphs is not loaded.
          * @throws std::invalid_argument if the given graph can not multiplie the current graph .
         **/
-        Graph& operator*(const Graph &g) const;
+        Graph operator*(const Graph &g) const;
 
         /**
          * @brief This method overloads the operator *= to multiply two graphs.
@@ -237,22 +244,17 @@ namespace GraphLib{
          * @throws std::invalid_argument if one of the graphs is not loaded.
          * @throws std::invalid_argument if the given graph can not multiplie the current graph .
         **/
-        Graph& operator*=(const Graph &g) const;
+        Graph& operator*=(const Graph &g);
 
-       /**
+        /**
          * @brief  This method overloads the operator == to compare two graphs.
          * @param g The graph to be compared to the current graph.
          * @return true if the two graphs are equal, false otherwise.
          * @throws std::invalid_argument if one of the graphs is not loaded.
          * @throws std::invalid_argument if the given graph is not the same size as the current graph.
         **/
-
-        /**
-         * @brief This method overloads the operator == to compare two graphs.
-         * @param g The graph to be compared to the current graph. 
-        **/
         bool operator==(const Graph &g) const;
-
+        
         bool operator!=(const Graph &g) const;
 
         bool operator<(const Graph &g) const;
@@ -270,7 +272,7 @@ namespace GraphLib{
          * @return The output stream after printing the graph.
          * @throws std::invalid_argument if the graph is not loaded.
         **/
-        friend std::ostream& operator<<(std::ostream& os, const Graph &g);
+        // friend std::ostream& operator<<(std::ostream& os, const Graph &g);
 
     };
 };
