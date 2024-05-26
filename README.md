@@ -46,7 +46,7 @@ In the following examples **<ins>g1</ins>** and **<ins>g2</ins>** are instances 
 
 + **g1 * g2** - Matrix multiplication of the adjecency matrices.
 
-+ **g1 *= g2** - Multiplying g1 by g2 and saving the answer inside g1.
++ **g1 ***=*** g2** - Multiplying g1 by g2 and saving the answer inside g1.
 
 + **g1 == g2** - Return whether the matrices representing g1 and g2 are identical. 
 
