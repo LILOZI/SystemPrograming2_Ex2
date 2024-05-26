@@ -507,7 +507,7 @@ bool GraphLib::Graph::operator>(const GraphLib::Graph &g) const
     if(!g.isLoaded() || !this->loaded){
         throw std::invalid_argument("One of the graphs is not loaded.");
     }
-    return !(*this <= g);
+    return g < *this;
 }
 
 bool GraphLib::Graph::operator>=(const GraphLib::Graph &g) const

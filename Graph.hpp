@@ -35,6 +35,16 @@ namespace GraphLib{
         Graph();
 
         ~Graph();
+
+        /**
+         * @brief This is a copy constructor.
+         * @throws std::invalid_argument if the given graph is not loaded.
+        **/
+        Graph(const Graph &g) {
+            if(!g.loaded){throw std::invalid_argument("The given graph is not loaded.");}
+            adjTable = g.adjTable;
+            copyFlags(g);
+        }
         
         /**
          * @return The number of vertices in the graph.
